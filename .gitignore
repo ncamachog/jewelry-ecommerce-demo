@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# original raw product photo dump (not needed to run the app; images already
+# live under public/products)
+/assets_raw
+
+# admin-managed product data — regenerated from src/lib/products.ts (seed) on
+# first run; keeping it out of git avoids noisy diffs from local edits
+/data/products.json
