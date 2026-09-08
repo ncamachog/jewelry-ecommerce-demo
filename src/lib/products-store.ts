@@ -4,23 +4,24 @@ import { productsSeed, slugify, type Product } from "@/lib/products";
 
 const DATA_FILE = path.join(process.cwd(), "data", "products.json");
 
-async function ensureFile(): Promise<void> {
+async function writeAll(products: Product[]): Promise<void> {
   try {
-    await fs.access(DATA_FILE);
-  } catch {
     await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(productsSeed, null, 2));
+    await fs.writeFile(DATA_FILE, JSON.stringify(products, null, 2));
+  } catch {
+    // Read-only filesystem (e.g. Vercel serverless functions) — admin edits
+    // won't persist across requests/deploys there. Swap in a real database
+    // for durable writes; the storefront itself still works off the seed.
   }
 }
 
-async function writeAll(products: Product[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(products, null, 2));
-}
-
 export async function getAllProducts(): Promise<Product[]> {
-  await ensureFile();
-  const raw = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(raw) as Product[];
+  try {
+    const raw = await fs.readFile(DATA_FILE, "utf-8");
+    return JSON.parse(raw) as Product[];
+  } catch {
+    return productsSeed;
+  }
 }
 
 export async function getProductBySlug(
